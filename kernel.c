@@ -1,9 +1,10 @@
 void printString(char*);
 void readString(char[]);
 void readSector(char*, int);
-void handleInterrupt21(int ax, int bx, int cx, int dx);
+void handleInterrupt21(int, int, int, int);
 int divide(int, int);
 int mod(int, int);
+char* readFile(char[], char*);
 
 int main(){
 //  int i=0;
@@ -18,17 +19,17 @@ int main(){
 
 // makeInterrupt21();
 // interrupt(0x21,0,0,0,0);
-  
+
 char line[80];
 makeInterrupt21();
 interrupt(0x21,1,line,0,0);
 interrupt(0x21,0,line,0,0);
-  
-  
+
+
 //while(1);
 }
 
-void printString(char* x){ 
+void printString(char* x){
   int i =0 ;
   while(x[i] != '\0'){
     char letter = x[i];
@@ -52,7 +53,7 @@ void readString(char string[]){
 		  --j;
 		  string[j]=0x0 ;
 		  if(!deletedBefore){
-		  interrupt(0x10, 0xE*256+x, 0, 0, 0); 
+		  interrupt(0x10, 0xE*256+x, 0, 0, 0);
 		  interrupt(0x10, 0xE*256+'\0', 0, 0, 0);
 		  deletedBefore =1;
 		  } else {
@@ -61,9 +62,9 @@ void readString(char string[]){
 		  interrupt(0x10, 0xE*256+'\0', 0, 0, 0);
 		  }
 	} else {
-	  if(j==0){string[j]=0x0; 
-	  interrupt(0x10, 0xE*256+x, 0, 0, 0); 
-	  interrupt(0x10, 0xE*256+' ', 0, 0, 0); 
+	  if(j==0){string[j]=0x0;
+	  interrupt(0x10, 0xE*256+x, 0, 0, 0);
+	  interrupt(0x10, 0xE*256+' ', 0, 0, 0);
 	  }
 	}
       break;
@@ -101,7 +102,7 @@ void readSector(char* buffer, int sector){
 
 
 void handleInterrupt21(int ax, int bx, int cx, int dx){
-  if (ax == 0) {  
+  if (ax == 0) {
     printString(bx);
   } else if (ax == 1) {
     readString(bx);
@@ -110,10 +111,17 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
   } else {
     printString("Error");
   }
-  
+
 }
 
+char* readFile(char[] name){
+  char directorySector[512];
+  readSector(directorySector, );
 
+}
 
+void executeProgram(char* name, int segment){
+  
+}
 
 
