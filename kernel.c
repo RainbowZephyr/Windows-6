@@ -9,8 +9,8 @@ char* readFile(char[], char*);
 int main(){
 //  int i=0;
 // char buffer[512];
-// readSector(buffer, 30);
-// printString(buffer);
+ //readSector(buffer, 30);
+ //printString(buffer);
 // while(i<512)
 // {
 //   interrupt(0x10, 0xE*256+buffer[i], 0, 0, 0);
@@ -20,11 +20,17 @@ int main(){
 // makeInterrupt21();
 // interrupt(0x21,0,0,0,0);
 
-char line[80];
+
 makeInterrupt21();
 interrupt(0x21,1,line,0,0);
 interrupt(0x21,0,line,0,0);
 
+ char line[80];
+ readString(line);
+ printString(line);
+ //makeInterrupt21();
+// interrupt(0x21,1,line,0,0);
+// interrupt(0x21,0,line,0,0);
 
 //while(1);
 }
@@ -121,7 +127,7 @@ char* readFile(char[] name){
 }
 
 void executeProgram(char* name, int segment){
-  
+
 }
 
 
