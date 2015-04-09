@@ -7,32 +7,32 @@ int mod(int, int);
 char* readFile(char[], char*);
 
 int main(){
-//  int i=0;
-// char buffer[512];
- //readSector(buffer, 30);
- //printString(buffer);
-// while(i<512)
-// {
-//   interrupt(0x10, 0xE*256+buffer[i], 0, 0, 0);
-//   i++;
-// }
+  //  int i=0;
+  // char buffer[512];
+  //readSector(buffer, 30);
+  //printString(buffer);
+  // while(i<512)
+  // {
+  //   interrupt(0x10, 0xE*256+buffer[i], 0, 0, 0);
+  //   i++;
+  // }
 
-// makeInterrupt21();
-// interrupt(0x21,0,0,0,0);
+  // makeInterrupt21();
+  // interrupt(0x21,0,0,0,0);
 
 
-makeInterrupt21();
-interrupt(0x21,1,line,0,0);
-interrupt(0x21,0,line,0,0);
+  makeInterrupt21();
+  interrupt(0x21,1,line,0,0);
+  interrupt(0x21,0,line,0,0);
 
- char line[80];
- readString(line);
- printString(line);
- //makeInterrupt21();
-// interrupt(0x21,1,line,0,0);
-// interrupt(0x21,0,line,0,0);
+  char line[80];
+  readString(line);
+  printString(line);
+  //makeInterrupt21();
+  // interrupt(0x21,1,line,0,0);
+  // interrupt(0x21,0,line,0,0);
 
-//while(1);
+  //while(1);
 }
 
 void printString(char* x){
@@ -56,23 +56,23 @@ void readString(char string[]){
       case 0xD: string[j] = ' '; string[++j] = '\0'; string[++j] = 0xA; string[++j] = 0x3;  interrupt(0x10, 0xE*256+x, 0, 0, 0); return;
       break; //delete
       case 0x8: if(j>=1){
-		  --j;
-		  string[j]=0x0 ;
-		  if(!deletedBefore){
-		  interrupt(0x10, 0xE*256+x, 0, 0, 0);
-		  interrupt(0x10, 0xE*256+'\0', 0, 0, 0);
-		  deletedBefore =1;
-		  } else {
-		  interrupt(0x10, 0xE*256+x, 0, 0, 0);
-		  interrupt(0x10, 0xE*256+x, 0, 0, 0);
-		  interrupt(0x10, 0xE*256+'\0', 0, 0, 0);
-		  }
+	--j;
+	string[j]=0x0 ;
+	if(!deletedBefore){
+	  interrupt(0x10, 0xE*256+x, 0, 0, 0);
+	  interrupt(0x10, 0xE*256+'\0', 0, 0, 0);
+	  deletedBefore =1;
 	} else {
-	  if(j==0){string[j]=0x0;
+	  interrupt(0x10, 0xE*256+x, 0, 0, 0);
+	  interrupt(0x10, 0xE*256+x, 0, 0, 0);
+	  interrupt(0x10, 0xE*256+'\0', 0, 0, 0);
+	}
+      } else {
+	if(j==0){string[j]=0x0;
 	  interrupt(0x10, 0xE*256+x, 0, 0, 0);
 	  interrupt(0x10, 0xE*256+' ', 0, 0, 0);
-	  }
 	}
+      }
       break;
       default: string[j] = x; interrupt(0x10, 0xE*256+x, 0, 0, 0); j++;
       break;
@@ -122,8 +122,27 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
 
 char* readFile(char[] name){
   char directorySector[512];
-  readSector(directorySector, );
+  int i =0;
+  char file[32];
+  readSector(directorySector, 2);
 
+  while(i < 16 ){
+    while(directorySector[32*i] != '\0'){
+
+    }
+  }
+
+}
+
+int checkName(char name[] , char directoryName[]){
+  int c = 0;
+  while(c < 6){
+    if(name[c] != directoryName[c]){
+      return 0;
+    }
+    c++;
+  }
+  return 1;
 }
 
 void executeProgram(char* name, int segment){
