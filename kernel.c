@@ -4,14 +4,17 @@ void readSector(char*, int);
 void handleInterrupt21(int, int, int, int);
 int divide(int, int);
 int mod(int, int);
-void readFile(char[], char*);
+void readFile(char[], char[]);
 
 int main(){
+
+
 char buffer[13312]; /*this is the maximum size of a file*/
+
 makeInterrupt21();
 interrupt(0x21, 3, "messag\0", buffer, 0); /*read the file into buffer*/
 interrupt(0x21, 0, buffer, 0, 0); /*print out the file*/
-//while(1);
+while(1);
 
 }
 
@@ -87,22 +90,33 @@ void readSector(char* buffer, int sector){
 }
 
 
-void handleInterrupt21(int ax, int bx, int cx, int dx){
+ void handleInterrupt21(int ax, int bx, int cx, int dx){
   if (ax == 0) {
     printString(bx);
-  } else if (ax == 1) {
-    readString(bx);
-  } else if (ax == 2) {
-    readSector(bx);
   } else {
+      if (ax == 1) {
+    readString(bx);
+    }
+   else {
+      if (ax == 2) {
+    readSector(bx);
+    }
+   else {
+      if(ax == 3) {
+    readFile(bx,cx);
+    }
+   else {
     printString("Error");
   }
-
+  }
+  }
+}
 }
 
-void readFile(char name[]){
+
+void readFile(char name[], char buffer[]){
   char directorySector[512];
-  char buffer[13312];
+ // char buffer[13312];
   char tmpBuffer[512];
   char file[32];
   int i =-1;
@@ -112,8 +126,9 @@ void readFile(char name[]){
   int bufferCounter =0 ;
   readSector(directorySector, 2);
 
+
   while(i < 16 ){
-        if(checkName(name, directorySector) == 0){
+        if(checkName(name, directorySector, i) == 0){
             i++;
         } else {
             break;
@@ -124,10 +139,10 @@ void readFile(char name[]){
     return;
   }
 	while(c<32){
-	if(directorySector[32*i] + c){
+	if(directorySector[32*i + c] == 0x0){
 		break;
 	}
-		readSector(tmpBuffer,directorySector[32*i] + c);
+		readSector(tmpBuffer,directorySector[32*i+c]);
 
 		while(tmp < 512){
 			buffer[bufferCounter]=tmpBuffer[tmp];
@@ -148,8 +163,4 @@ int checkName(char name[] , char directoryName[],  int i){
     c++;
   }
   return 1;
-}
-
-void executeProgram(char* name, int segment){
-
 }
