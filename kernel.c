@@ -5,6 +5,8 @@ void handleInterrupt21(int, int, int, int);
 int divide(int, int);
 int mod(int, int);
 void readFile(char[], char[]);
+void executeProgram(char* , int);
+
 
 int main(){
 
@@ -12,8 +14,7 @@ int main(){
 char buffer[13312]; /*this is the maximum size of a file*/
 
 makeInterrupt21();
-interrupt(0x21, 3, "messag\0", buffer, 0); /*read the file into buffer*/
-interrupt(0x21, 0, buffer, 0, 0); /*print out the file*/
+interrupt(0x21, 4, "tstprg\0", 0x2000, 0);
 while(1);
 
 }
@@ -91,26 +92,15 @@ void readSector(char* buffer, int sector){
 
 
  void handleInterrupt21(int ax, int bx, int cx, int dx){
-  if (ax == 0) {
-    printString(bx);
-  } else {
-      if (ax == 1) {
-    readString(bx);
-    }
-   else {
-      if (ax == 2) {
-    readSector(bx);
-    }
-   else {
-      if(ax == 3) {
-    readFile(bx,cx);
-    }
-   else {
-    printString("Error");
-  }
-  }
-  }
-}
+	switch(ax){
+	case 0: printString(bx); break;
+	case 1: readString(bx); break;
+	case 2: readSector(bx); break;
+	case 3: readFile(bx,cx); break;
+	case 4: executeProgram(bx,cx); break;
+	default: printString("Unknown Interrupt"); break;
+	}
+
 }
 
 
@@ -164,3 +154,23 @@ int checkName(char name[] , char directoryName[],  int i){
   }
   return 1;
 }
+
+
+void executeProgram(char* name, int segment){
+	int i;
+	char buffer[13312];
+
+	readFile(name, buffer);
+
+	while(i < 13312){
+		putInMemory(segment,0x0000+i ,buffer[i]);
+		i++;
+	}
+	launchProgram(segment);
+
+}
+
+
+
+
+
