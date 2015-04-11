@@ -6,6 +6,7 @@ int divide(int, int);
 int mod(int, int);
 void readFile(char[], char[]);
 void executeProgram(char* , int);
+void terminate();
 
 
 int main(){
@@ -14,7 +15,8 @@ int main(){
 char buffer[13312]; /*this is the maximum size of a file*/
 
 makeInterrupt21();
-interrupt(0x21, 4, "tstprg\0", 0x2000, 0);
+interrupt(0x21, 4, "tstpr2\0", 0x2000, 0);
+interrupt(0x21, 5, "tstpr2\0", 0x2000, 0);"
 while(1);
 
 }
@@ -98,6 +100,7 @@ void readSector(char* buffer, int sector){
 	case 2: readSector(bx); break;
 	case 3: readFile(bx,cx); break;
 	case 4: executeProgram(bx,cx); break;
+	case 5: terminate(); break;
 	default: printString("Unknown Interrupt"); break;
 	}
 
@@ -167,6 +170,10 @@ void executeProgram(char* name, int segment){
 		i++;
 	}
 	launchProgram(segment);
+
+}
+void terminate(){
+	while(1);
 
 }
 
