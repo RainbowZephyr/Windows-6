@@ -15,8 +15,8 @@ int main(){
 char buffer[13312]; /*this is the maximum size of a file*/
 
 makeInterrupt21();
-interrupt(0x21, 4, "tstpr2\0", 0x2000, 0);
-interrupt(0x21, 5, "tstpr2\0", 0x2000, 0);"
+interrupt(0x21, 4, "shell\0", 0x2000, 0);
+interrupt(0x21, 5, "shell\0", 0x2000, 0);
 while(1);
 
 }
@@ -173,7 +173,8 @@ void executeProgram(char* name, int segment){
 
 }
 void terminate(){
-	while(1);
+	//while(1);
+	interrupt(0x21, 4, "shell\0", 0x2000, 0);
 
 }
 
