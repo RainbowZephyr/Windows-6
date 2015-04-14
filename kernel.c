@@ -11,20 +11,20 @@ void terminate();
 
 int main(){
 
-
 char buffer[13312]; /*this is the maximum size of a file*/
 
 makeInterrupt21();
 interrupt(0x21, 4, "shell\0", 0x2000, 0);
-interrupt(0x21, 5, "shell\0", 0x2000, 0);
+
 while(1);
 
 }
 
 void printString(char* x){
   int i =0 ;
+   char letter;
   while(x[i] != '\0'){
-    char letter = x[i];
+   letter = x[i];
     interrupt(0x10, 0xE*256+letter, 0, 0, 0);
     i++;
   }
@@ -33,33 +33,20 @@ void printString(char* x){
 void readString(char string[]){
   int j=0;
   char x;
-  int deletedBefore =0;
-  string[j] = 0xA;
-  j++;
   while(1){
     x = interrupt(0x16, string[j], 0, 0, 0);
     switch(x){ //enter
-      case 0xD: string[j] = ' '; string[++j] = '\0'; string[++j] = 0xA; string[++j] = 0x3;  interrupt(0x10, 0xE*256+x, 0, 0, 0); return;
+      case 0xD: string[j] = 0xD; string[++j] = 0xA; string[++j] = 0x0; interrupt(0x10, 0xE*256+' ', 0, 0, 0); interrupt(0x10, 0xE*256+x, 0, 0, 0); interrupt(0x10, 0xE*256+0xA, 0, 0, 0); return;
       break; //delete
-      case 0x8: if(j>=1){
-	--j;
-	string[j]=0x0 ;
-	if(!deletedBefore){
-	  interrupt(0x10, 0xE*256+x, 0, 0, 0);
-	  interrupt(0x10, 0xE*256+'\0', 0, 0, 0);
-	  deletedBefore =1;
-	} else {
-	  interrupt(0x10, 0xE*256+x, 0, 0, 0);
-	  interrupt(0x10, 0xE*256+x, 0, 0, 0);
-	  interrupt(0x10, 0xE*256+'\0', 0, 0, 0);
-	}
-      } else {
-	if(j==0){string[j]=0x0;
-	  interrupt(0x10, 0xE*256+x, 0, 0, 0);
-	  interrupt(0x10, 0xE*256+' ', 0, 0, 0);
-	}
-      }
-      break;
+      case 0x8: if(j>0){
+         interrupt(0x10, 0xE*256+0x8, 0, 0, 0);
+	  interrupt(0x10, 0xE*256+0x0, 0, 0, 0);
+	  interrupt(0x10, 0xE*256+0x8, 0, 0, 0);
+	  j--; 
+	  } else {
+	  string[j] = x;
+	  interrupt(0x10, 0xE*256+string[j], 0, 0, 0);
+	  }break;
       default: string[j] = x; interrupt(0x10, 0xE*256+x, 0, 0, 0); j++;
       break;
     }
