@@ -7,14 +7,15 @@ int mod(int, int);
 void readFile(char[], char[]);
 void executeProgram(char* , int);
 void terminate();
+void writeSector(char[], char[]);
+void deleteFile(char*);
+void writeFile(char* , char*, int);
 
 
 int main(){
 
-char buffer[13312]; /*this is the maximum size of a file*/
-
 makeInterrupt21();
-interrupt(0x21, 4, "shell\0", 0x2000, 0);
+interrupt(0x21,4, "shell", 0x2000, 0); //write file testW
 
 while(1);
 
@@ -59,7 +60,7 @@ int divide(int number, int divisor){
     return -1;
   } else {
     while(number >= divisor){
-      number =number- divisor;
+      number = number- divisor;
       counter++;
     }
     return counter;
@@ -84,10 +85,13 @@ void readSector(char* buffer, int sector){
 	switch(ax){
 	case 0: printString(bx); break;
 	case 1: readString(bx); break;
-	case 2: readSector(bx); break;
+	case 2: readSector(bx,cx); break;
 	case 3: readFile(bx,cx); break;
 	case 4: executeProgram(bx,cx); break;
 	case 5: terminate(); break;
+	case 6: writeSector(bx,cx); break;
+	case 7: deleteFile(bx); break;
+	case 8: writeFile(bx,cx,dx);  break;
 	default: printString("Unknown Interrupt"); break;
 	}
 
@@ -96,11 +100,8 @@ void readSector(char* buffer, int sector){
 
 void readFile(char name[], char buffer[]){
   char directorySector[512];
- // char buffer[13312];
   char tmpBuffer[512];
-  char file[32];
   int i =-1;
-  int sectors[26];
   int c=6;
   int tmp=0;
   int bufferCounter =0 ;
@@ -164,6 +165,145 @@ void terminate(){
 	interrupt(0x21, 4, "shell\0", 0x2000, 0);
 
 }
+
+void writeSector(char* buffer, int sector){
+  int relSector = mod(sector, 18) +1;
+  int head = mod(divide(sector,18), 2);
+  int track = divide(sector,36);
+  interrupt(0x13,769, buffer, track*256+relSector, head*256);
+}
+
+void deleteFile(char* name){
+  char directorySector[512];
+  char map[512];
+  char file[32];
+  int i =-1;
+  int sectors[26];
+  int c=6;
+  int tmp=0;
+  int bufferCounter =0 ;
+  
+  readSector(directorySector, 2);
+  readSector(map, 1);
+
+  while(i < 16 ){
+        if(checkName(name, directorySector, i) == 0){
+            i++;
+        } else {
+            break;
+        }
+  }
+
+	directorySector[32*i] = 0x0;
+	writeSector(directorySector,2);
+
+  if(i == -1){
+    return;
+  }
+	while(c<32){
+		map[directorySector[32*i + c]+1] = 0x0;
+		c++;
+	}
+		writeSector(map , 1);
+}
+
+void writeFile(char* name, char* buffer, int secNum){
+  char directorySector[512];
+  char tmpBuffer[512];
+  char map[512];
+  int dirCounter =0;
+  int bufferCounter =0 ;
+  int fileCounter=0;
+  int sectorCounter =6;
+  int mapCounter;
+  int freeDir =0;
+  int freeSector = 0;
+  int bufferSize =0;
+  int tmp;
+  int globalCounter = 0;
+  int bufferWrites;
+  
+  
+  readSector(directorySector, 2); //load directory
+  readSector(map, 1); //load map
+  
+  	while(buffer[bufferSize] != '\0'){  //check file size
+  		bufferSize++;
+  	}
+  	
+  	bufferWrites = divide(bufferSize ,512);
+  	
+  	if(mod(bufferSize, 512) != 0){
+  		bufferWrites++;
+  	}
+
+	while(dirCounter < 16){ // check for empty directory
+		if(directorySector[dirCounter*32] == 0x0){
+			freeDir =1;
+			break;		
+		} else{
+			dirCounter++;
+		}
+	}
+	
+	if(freeDir == 0){
+		return;
+	}
+	
+	while(name[fileCounter] != '\0'){ // copy name of file
+		directorySector[dirCounter*32 + fileCounter] = name[fileCounter];
+		fileCounter++;
+	}
+	
+	if(fileCounter != 5){ //fill rest of name with 0s
+		while(fileCounter < 6){
+			directorySector[dirCounter*32 + fileCounter] = 0x0;
+			fileCounter++;
+		}
+	}
+	
+	while(globalCounter < bufferWrites){
+	
+	mapCounter=0;
+	while(mapCounter < 512){ //find free sector in map
+		if(map[mapCounter] == 0x0){
+			map[mapCounter] = 0xFF;
+			freeSector =1;
+			break;
+		}else{
+			mapCounter++;
+		}
+	}
+	
+	if(freeSector ==0){
+		return;
+	}
+	
+	tmp=0;
+	while(tmp < 512){ //write 512 byte in tmp array
+		tmpBuffer[tmp] = buffer[bufferCounter];
+		tmp++;
+		bufferCounter++; //counter to hold position of data from buffer
+	}
+	
+	directorySector[32 * dirCounter + sectorCounter]  = mapCounter +1;	
+	writeSector(tmpBuffer , mapCounter + 1);
+	writeSector(map ,1);
+	writeSector(directorySector ,2);
+	
+	globalCounter++;
+	}
+	
+}
+
+
+
+
+
+
+
+
+
 
 
 

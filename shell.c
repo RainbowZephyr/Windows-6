@@ -1,89 +1,121 @@
-int checkView(char[]);
-char* extractName(char[]);
-int checkExec(char[]);
-char* extractProg(char[]);
 
 int main (){
- char line[100]; 
- char buffer[13312];
- int known =1; 
- 
+  char line[100];
+  char buffer[13312];
+  int cv,cd,cc,ce;
+  int i,tmp;
+  char* view= "view";
+  char* exec="execute";
+  char* delete="delete";
+  char* copy = "copy";
+  int clear;
+  char* programName;
+  char* fileName;
+
   while(1){
-  interrupt(0x21, 0, "shell> \0 ", 0, 0);
-  interrupt(0x21, 1, line, 0, 0);
-  interrupt(0x21, 0, "\n", 0, 0);
-  
-  if((checkView(line) == 0) && (checkExec(line) == 0)){
-  interrupt(0x21, 0, "bad command", 0, 0);
-  } else  {
-  
-  if(checkView(line) == 1){
-  interrupt(0x21, 3, extractName(line), buffer, 0);
-  interrupt(0x21, 0, buffer, 0, 0);
-  } 
-  
-  if(checkExec(line) == 1){
-  interrupt(0x21, 4, extractProg(line), 0x2000, 0);
-  }
-  
-  
-  }
-  
-  }
+  cv=1;
+  ce=1;
+  cd=1;
+    interrupt(0x21, 0, "shell> \0 ", 0, 0);
+    interrupt(0x21, 1, line, 0, 0);
+  //  interrupt(0x10, 0xE*256+line[0], 0, 0, 0);
 
-}
-
-int checkView(char string[]){
-	int i =0;
-	char* view= "view";
-	while(i < 4){
-		if(string[i] != view[i]){
-		return 0;
-		}
-	i++;
+    i=0;
+    while(i < 4){
+      if(line[i] != view[i]){
+	cv = 0;
+	break;
+      }
+      i++;
     }
 	
-	return 1;
+    i=0;
+    while(i<7){
+      if(line[i] != exec[i]){
+	ce = 0;
+	break;
+      }
+      i++;
+    }
+    
+    i=0;
+    while(i<6){
+      if(line[i] != delete[i]){
+	cd = 0;
+	break;
+      }
+      i++;
+    }
+    
+     i=0;
+    while(i<4){
+      if(line[i] != delete[i]){
+	cc = 0;
+	break;
+      }
+      i++;
+    }
+    
 
-}
+    if((cv ==0 && ce == 0 && cd ==0 && cc == 0) ){
+      interrupt(0x21, 0, "bad command", 0, 0);
+    }
 
-char* extractName(char string[]){
-	int i = 5;
-	int j = 0;
-	char name[6];
-	while(j<6){
-	name[j] = string[j+5];
-	i++;
-	j++;
+
+/*
+      if(cv==1){
+      i=5;
+      while(line[i] != '\0'){
+      programName[i-5] = line[i];
+      i++;
+      }
+      interrupt(0x21, 3,programName, buffer, 0);
+      interrupt(0x21, 0, buffer, 0, 0);
+      } 
+*/
+//cannot have both if conditions at the same time, one must be commented for the other to work
+  /*    if(ce==1){
+	i=8;
+	while(line[i] != '\0'){
+	  programName[i-8] = line[i];
+	  i++;
 	}
-	return name;
+	interrupt(0x21, 4, programName, 0x2000, 0);
+
+      } */
+ /*     
+	if(cd == 1 ){
+      	i=7;
+      	while(line[i] != '\0'){
+      		programName[i-7]=line[i];
+      		i++;
+      	} 
+      	interrupt(0x21,7 , programName, 0 ,0);
+        } */
+
+	if(cc == 1 ){
+      	i=4;
+      	while(line[i] != 0x20){
+      		programName[i-4]=line[i];
+      		i++;
+      	} 
+      	i++;
+      	tmp=0;
+      	while(line[i] != '\0'){
+      		fileName[tmp] = line[i];
+      		i++;
+      	}
+      	
+      	interrupt(0x21, 3,programName, buffer, 0);
+      	interrupt(0x21, 8, fileName, buffer , 0);
+      }
+
+
+    clear = 0;
+    while(clear < 100){
+      line[clear]=0x0;
+      clear++;
+    }
+
+  }
 }
-
-int checkExec(char string[]){
-	int i =0;
-	char* exec= "execute";
-	while(i < 7){
-	if(exec[i] != string[i]){
-	return 0;
-	}
-	i++;
-	}
-	
-	return 1;
-
-}
-
-char* extractProg(char string[]){
-	int i = 5;
-	int j = 0;
-	char name[6];
-	while(j<6){
-	name[j] = string[j+5];
-	i++;
-	j++;
-	}
-	return name;
-}
-
-
-
